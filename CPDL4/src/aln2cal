@@ -1,0 +1,76 @@
+#!/usr/bin/perl
+# Program:      aln2cal
+# Authors:      Sean R. McCorkle, Kimberly M. Mayer, John Shanklin
+# Language:     perl
+# License:      BSA open source license, see included LICENSE.txt (LICENSE.pdf)
+#
+# Description:  converts CLUSTAL multiple alignment output files into 
+#               input format required for CPDL: one sequence per line,
+#               with three whitespace-separated fields:  sequence number,
+#               sequence-id, and sequence as presented in alignment, with
+#               inserted spaces represented by the character "." (period)
+#
+# Usage:        Reads file on command line (or stdin if none specified)
+#               and writes to stdout, which can be piped directly into
+#               cpdl.pl
+#
+#                         aln2cal <alnfile> | cpdl.pl <n> 
+#
+#               where <alnfile> is the output alignment file from CLUSTAL
+#               and <n> indicates the demarcaton between the two paralogous
+#               groups in the alignment (see cpdl.pl and README for more info)
+#
+# $Id: aln2cal,v 4.0 2007/05/14 19:16:28 mccorkle Exp mccorkle $
+#
+
+
+                          #####################
+                          # Read CLUSTAL file #
+                          #####################
+
+
+$_ = <>;
+if ( /(\^@){4,}/ )
+   {
+    $_ = <>;
+    $_ = <>;
+   }
+
+
+/^CLUSTAL.*multiple sequence alignment/ || die "Not a CLUSTAL alignment file";
+
+$_ = <>;
+$_ = <>;
+
+while ( $_ = <> )
+   {
+    chomp;
+    clean_it();
+    next if ( /^\s*$/ );
+    next if ( /^\s+[\s:\*\.]*$/ );
+    if ( /^(\S+)\s+(\S+)(\s+\d+)?$/ )
+       {
+        ($id,$s) = ($1,$2);
+        $s =~ s/\-/\./g;
+        $id =~ s/[^A-Za-z0-9_-]//g;
+        push( @ids, $id ) unless( $seqs{$id} );    # save ordered list of ids
+        $seqs{$id} .= $s;                          # put seq into a table
+       }
+    else
+       { die "$0: Bad line [$_]"; }
+   }
+
+                      #########################
+                      # Write output for CPDL #
+                      #########################
+
+foreach $id ( @ids )
+   { print ++$i, " $id ", $seqs{$id}, "\n"; }
+
+
+sub  clean_it                # get rid of nasty chars that we sometimes
+   {                         # encounter
+    s/\r$//;           
+    s/\000//g;
+    s/\^.//g;
+   }

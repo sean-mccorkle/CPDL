@@ -1,0 +1,204 @@
+
+CPDL
+
+                Conserved Property Difference Locator 
+                    http://genome.bnl.gov/CPDL/
+
+
+Program Authors:
+     
+            Sean R. McCorkle    (bug reports to mccorkle@bnl.gov)
+            Kimberly M. Mayer
+            John Shanklin
+            
+Publication:
+
+            "Linking enzyme sequence to function using conserved
+            property difference locator to identify and annotate
+            positions likely to control specific functionality"
+            Kimberly M Mayer, Sean R McCorkle and John Shanklin 
+            BMC Bioinformatics 2005,  6:284
+            http://www.biomedcentral.com/1471-2105/6/284
+
+License:
+
+            BSA Open Source License - see included files LICENSE.txt or
+            LICENSE.pdf
+
+Getting CPDL:
+
+      Source tarball is avaliable at http://genome.bnl.gov/ or
+      ftp://ftp.genome.bnl.gov/CPDL/cpdl4.tar.gz
+
+      To unpack:  on most modern unix systems this should work
+
+                     tar zxvf cpdl4.tar.gz
+
+                or, if not,
+
+                     gunzip -c cpdl4.tar.gz | tar xvf -
+
+                will unpack into a subdirectory CPDL4
+
+Manifest
+
+      Programs
+
+           cpdl.pl - CPDL main program
+
+           aln2cal - front end translators, CLUSTAL aln -> CPDL4 input
+           msf2cal                          MSF -> CPDL4 input
+
+      Subroutines
+
+         utils.pl                  miscellaneous utilities
+         freqs.pl                  frequency tables
+         tracks.pl                 graphical track descriptors
+         track_descriptions.pl     other track data
+         props.pl                  residue property functions
+         conserved.pl              user selected conservation definition 
+                                   functions
+         discrepancies.pl          discrepancy detecting function 
+                                   (differences)
+         cursor.pl                 mechanism for keeping track of position
+         cpdlgraf.pl               high level (track) graphics
+         graf.pl                   low level primitive graphics (Postscript)
+         key_table.pl              prints key at end of report
+
+       Example files
+
+         MurE_D.aln    MurE_D.cal  mured1.ps
+         fad_oh.aln
+         cyclases.msf
+  
+Input:
+
+      CPDL takes a multiple alignment as input, in which two homologous
+      groups of proteins have been arranged such that all the members of
+      one group are in rows 1 to n, and all the members of the 2nd group
+      are in rows n+1 and below.  The number n must be specified on the 
+      command line to demarcate the two groups.
+
+      The input aligment format is text, one protein per line, where
+      each line consists of three whitespace-separated fields: 
+                   <seqnum> <seqname> <seq>
+      where
+         <seqnum>  is an increasing integer 
+         <seqname> is a sequence identifier 
+         <seq>     is the protein amino acid sequence, as it apears in
+                   the alignment, where inserted spaces are indicated by
+                   '.' (period character).  Amino acids should be all caps
+                   and can include 'X' (which is treated the same as '.')
+         no spaces can occur in any of these fields. 
+
+      example input
+
+      1 MURE_XANAC .....................MSRSMALS.......QLLPDVALTHDVQVSGLVMDSRA
+      2 MURE_XANCP .....................MSRAMALS.......QLLPDVALARDVQVSGLVMDSRA
+      3 MURE_ECOLI ......................ADRNLRD.......LLAPWVPDAPSRALREMTLDSRV
+      4 MURE_AGRT5 .....................MNLRDISGNAFP..ELKELLLSEIGAIEIGGITADSRK
+      5 MURE_RHIME .....................MKITDLAGSNFP..ELSAQLKGDAATIEIGGITADSRQ
+      6 MURE_BRUSU .....................MKLKEIA.......LFNELASGEAGEVEITGITSDSRA
+
+      Two scripts, aln2cal and msf2cal, are provided to translate CLUSTAL .aln
+      format files and MSF format files into CPDL input.
+
+      (Strictly speaking, <seqnum> and <seqname> are not used by CPDL;
+      they were included in the output of the front-end translator programs
+      to help with manual checking)
+
+
+CPDL Options:
+
+    cpdl.pl [<options>] <n> [<input-file>]
+
+    <n> must be specified.  If <input-file> file not specified, stdin is
+    scanned.
+
+
+    -g exponential  (default)
+    -g linear
+    -g plateau
+           use exponential, linear or flat gamma-correction functions
+           to indicate lower frequency residues or properties.
+           The "plateau" function always indicates conserved residues
+           or properties with bold or dark.
+
+    -C unanimous_minus_1 (default)
+    -C unanimous  
+           define "conserved" to be "All but one" or "all"
+
+    -d <n>  (default 0.25)
+           numeric factor to control darkness of output
+
+    -f <n> (default 5)
+           frequency cutoff for printing - don't print any more than
+           this number of residues/property symbols in the tracks -
+
+    -t <str>
+           use <str> as plot title (default is filename)
+
+    -P 
+           don't display orange circles (which indicate differences in 
+           property tracks) in the main track 
+ 
+    -K   
+           don't display key table at end of output
+
+    -U  
+           don't print user's settings at end of output
+
+   The following options control the various property track display states:
+
+    -s <state>  
+           size track
+    -w <state>
+           hydrophobicity track
+    -c <state>
+           charge track
+    -p <state>
+           polarity track
+    -a <state>
+           aromaticity track
+
+    where  <state> can be one of the following:
+
+           blank           don't show the track
+           on              show every position in the track
+           discrep         only show position if there's a difference (default)
+           main_discrep    only show position if there's a difference in the
+                           main track
+           main_full_high  only show position if there's a "full-high" 
+                           (red hourglass) difference in the main track
+
+     The main track (residue) state is always 'on' and can't be changed.
+
+
+Output:
+
+       See the publication in Bioinformatics for a detailed description of
+       the graphics output.
+
+       CPDL produces Postscript graphics output, which may be sent directly to 
+       a postscript printer or displayed with programs such as ghostscript, 
+       ghostview, or Preview (MacOSX).  Postscript can also be converted into
+       PDF format via ps2pdf or pstopdf.  Ghostscript is also capable of 
+       converting the output into a number of different graphics formats.
+
+
+Examples:
+       
+            aln2cal MurE_D.aln >MurE_D.cal
+            cpdl.pl 25 MurE_D.cal >mured1.ps
+
+       or front-end output can be piped directly into cpdl.pl input:
+
+            aln2cal MurE_D.aln | cpdl.pl 25 | gs
+
+       use a "plateau" gamma correction and convert output to PDF
+    
+            msf2cal cyclases.msf | cpdl.pl -g plateau 20 | ps2pdf >cyclases.pdf
+
+
+$Id: README,v 4.0 2007/05/16 20:10:13 mccorkle Exp mccorkle $
+

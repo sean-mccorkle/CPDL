@@ -1,0 +1,82 @@
+#!/usr/bin/perl
+# Program:      msf2cal
+# Language:     perl
+# Authors:      Sean R. McCorkle, Kimberly M. Mayer, John Shanklin
+# License:      BSA open source license, see included LICENSE.txt (LICENSE.pdf)
+#
+# Description:  Converts .msf multiple alignment file into format suitable for
+#               input into CPDL: one sequence per line with three whitespace-
+#               separated fields:  sequence number, sequence-id, and sequence 
+#               as presented in alignment, with inserted spaces represented by 
+#               the character "." (period)
+#
+# Usage:        Reads file on command line (or stdin if none specified)
+#               and writes to stdout, which can be piped directly into
+#               cpdl.pl
+#
+#                         msf2cal <msffile> | cpdl.pl <n> 
+#
+#               where <msffile> is the MSF format file to be converted,
+#               and <n> indicates the demarcaton between the two homologous
+#               groups in the alignment (see cpdl.pl and README for more info)
+#
+# $Id: msf2cal,v 4.0 2007/05/14 19:42:51 mccorkle Exp mccorkle $
+#
+
+                          ###########################
+                          # Read block sequence ids #
+                          ###########################
+
+while ( ($_ = <>) && ! m=^//= )
+   {
+    clean_it();
+    next if ( /^\s*$/ );
+    next if ( /(\^@){4,}/ );
+    next unless( /Name:\s+(\S+)\s+.*Len:\s+(\d+)\s+Check:\s+(\d+)\s+Weight:\s+(\d+)/ );
+    ($name,$len,$check,$weight) = ($1, $2, $3, $4);
+    push( @names, $name );                          # save ordered list of ids
+   }
+
+                             ##################
+                             # Read alignment #
+                             ##################
+
+while ( $_ = <> )
+   {
+    clean_it();
+    while  ( $_ && ( /^\s*$/ || /^\s+(\d+)(\s+(\d+))?s*$/ ) ) 
+       {
+        $_ = <>; 
+        clean_it();
+       }
+    last unless( $_ );
+    foreach $n ( @names )
+       {
+        s/^\s*(\S+)// || die "$0: Bad name line $_\n";
+        ( $1 eq $n ) || die "$0: got $1 where $n was expected [$_]\n";
+        s/\s//g;
+        $seq{$n} .= $_;                  # append seq in a table keyed by id
+        $_ = <>;
+        clean_it();
+       }
+   }
+
+                         #########################
+                         # Write output for CPDL #
+                         #########################
+
+$i = 1;
+foreach $n ( @names )
+   {
+    my $pnam = $n;
+    $pnam =~ s/[^A-Za-z0-9_-]//g;
+    print $i++, " $pnam ", $seq{$n}, "\n";
+   }
+
+
+sub  clean_it          # remove nasty chars we sometimes run into
+   {
+    s/\r$//;
+    s/\000//g;
+    s/\^.//g;
+   }
