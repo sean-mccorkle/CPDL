@@ -42,9 +42,9 @@ function get_first_line( $file )
     do {
         $line = fgets( $f, 1024 );
         } while ( (!feof( $f )) && 
-                   ( ! ereg( "(CLUSTAL|PileUp|MSF:)", $line ) ) && 
-                   (trim( $line ) == "" || ereg( "(\\^@)+", $line )
-                               || ereg( "(HTML|META|BODY|PRE)", $line ) ) );
+                   ( ! preg_match( "/(CLUSTAL|PileUp|MSF:)/", $line ) ) && 
+                   (trim( $line ) == "" || preg_match( "/(\\^@)+/", $line )
+                               || preg_match( "/(HTML|META|BODY|PRE)/", $line ) ) );
 
     if ( feof( $f ) )
         bailout( "Bad alignment file; encountered EOF looking for 1st nonblank line" );
@@ -210,13 +210,13 @@ if ( $remote_file != "" )
     $opts .= " -I '$remote_file'";
 
 $darkness = trim( $darkness );
-if ( ! ereg( "^[0-9]?\.[0-9]+$", $darkness ) )
+if ( ! preg_match( "/^[0-9]?\.[0-9]+$/", $darkness ) )
     bailout( "darkness adjustment \"$darkness\" must be a number between 0.0 & 1.0" );
 
 $opts .= " -d $darkness";
 
 $group_a_max = trim( $group_a_max );
-if ( ! ereg( "^[0-9]+$", $group_a_max ) )
+if ( ! preg_match( "/^[0-9]+$/", $group_a_max ) )
     bailout( "Invalid top group row \"$group_a_max\"; must be a number" );
 
 $first_line = get_first_line( $usertfile );
@@ -231,13 +231,13 @@ $jpgfile = tempnam( "/tmp", "cpdl_jpg" );
 if ( $logging )
     fwrite( $log, "   scheme file is $calfile\n   ps file is $psfile\n" );
 
-if ( ereg( "CLUSTAL", $first_line ) )
+if ( preg_match( "/CLUSTAL/", $first_line ) )
    {
     if ( $logging )
         fwrite( $log, "   this is a CLUSTAL file\n" );
     system( "$alntrans $usertfile >$calfile" );
    }
-elseif ( ereg( "PileUp", $first_line ) || ereg( "MSF:", $first_line ) )
+elseif ( preg_match( "/PileUp/", $first_line ) || preg_match( "/MSF:/", $first_line ) )
    {
     if ( $logging )
        fwrite( $log, "   this is an MSF file\n" );

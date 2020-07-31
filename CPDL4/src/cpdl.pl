@@ -83,11 +83,13 @@
 #                          (red hourglass) difference in the main track
 # 
 #
-# $Id: cpdl.pl,v 4.0 2007/05/16 19:36:55 mccorkle Exp mccorkle $
+# $Id: cpdl.pl,v 4.1 2012/01/05 16:09:51 seanmccorkle Exp seanmccorkle $
 #
 use strict;
 
 use Getopt::Std;
+
+use lib ".";
 
 require "utils.pl";                 # miscellaneous utilities
 require "freqs.pl";                 # frequency tables
@@ -103,18 +105,19 @@ require "cpdlgraf.pl";              # high level (track) graphics
 require "key_table.pl";             # prints key at end of report
 
 my %options = ();                      
-getopts("a:c:C:d:f:g:KPp:s:Uw:t:",\%options) || die;  
+getopts("a:c:C:d:f:g:I:KPp:s:Uw:t:",\%options) || die;  
                                        # this SHOULD be in handle_command_line
                                        # _options() but for the life of me I 
                                        # can't get getopts() to work in a sub
 
-my $cpdl_revision = '$Revision: 4.0 $';
+my $cpdl_revision = '$Revision: 4.1 $';
 $cpdl_revision =~ s/^\$Revision: //;
 $cpdl_revision =~ s/ \$\s*$//;
 
 my $group_a_max = shift;
 
 my $filename = @ARGV ? $ARGV[0] : "stdin";
+my $input_filename = $filename;    # overridden by -I
 my $title;                         # set by -t option
 
 my $freq_print_cutoff = 5;  # don't print residue stack deeper than this number
@@ -295,6 +298,7 @@ sub  handle_command_line_options
     $show_key_table       = defined( $options{'K'} ) ? 0 : 1; 
     $show_user_settings   = defined( $options{'U'} ) ? 0 : 1; 
     $title = defined( $options{'t'} ) ? $options{'t'} : $filename;
+    $input_filename = $options{'I'} if ( defined( $options{'I'} ) );
    }
 
 #
@@ -648,7 +652,7 @@ sub  render_user_settings
     pline( "User settings:" );
     pline();
     set_font( "Courier", 12 );
-    pline( "Alignment file: $filename" );
+    pline( "Alignment file: $input_filename" );
     pline( "Top group rows 1-", 1 + $#a_seqs, 
            ";  Bottom group rows ", 2 + $#a_seqs,
                                  "-", 1 + $#seqs );
